@@ -3,8 +3,6 @@ use dlog_proof::*;
 use std::time::Instant;
 
 fn main() {
-    println!("Hello, world!");
-
     let x = generate_random();
     let g_projective = G;
     let y = g_projective * x;

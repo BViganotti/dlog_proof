@@ -2,24 +2,14 @@ extern crate k256;
 extern crate rand;
 extern crate sha2;
 
-use elliptic_curve::bigint::ArrayEncoding;
-use elliptic_curve::ops::Reduce;
-use elliptic_curve::{Curve, PrimeField};
 use k256::elliptic_curve::sec1::ToEncodedPoint;
-use k256::{AffinePoint, ProjectivePoint, Scalar, Secp256k1, U256};
-use lazy_static::lazy_static;
+use k256::elliptic_curve::PrimeField;
+use k256::{AffinePoint, ProjectivePoint, Scalar};
 use rand::rngs::OsRng;
 use sha2::{Digest, Sha256};
 use std::fmt;
 
 pub const G: ProjectivePoint = ProjectivePoint::GENERATOR;
-// const ORDER_BYTES: [u8; 32] = [
-//     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe,
-//     0xba, 0xae, 0xdc, 0xe6, 0xaf, 0x48, 0xa0, 0x3b, 0xbf, 0xd2, 0x5e, 0x8c, 0xd0, 0x36, 0x41, 0x41,
-// ];
-// lazy_static! {
-//     static ref ORDER: Scalar = Scalar::from_repr(ORDER_BYTES.into()).unwrap();
-// }
 
 pub fn generate_random() -> Scalar {
     Scalar::generate_vartime(&mut OsRng)
