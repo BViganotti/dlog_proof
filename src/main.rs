@@ -17,6 +17,8 @@ fn main() {
     );
 
     println!("{}", dlog_proof.point_to_hex(&dlog_proof.t));
+    // will need to convert t to and affinepoint to get access to the x and y coordinates
+    // like in dlog_proof.py
 
     // println!("");
     // println!("{} {}", dlog_proof.t);

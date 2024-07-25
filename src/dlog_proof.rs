@@ -4,15 +4,15 @@ extern crate sha2;
 
 use generic_array::typenum::U32;
 use k256::elliptic_curve::group::GroupEncoding;
-use k256::elliptic_curve::sec1::{FromEncodedPoint, ToEncodedPoint};
+use k256::elliptic_curve::sec1::ToEncodedPoint;
 use k256::elliptic_curve::PrimeField;
 use k256::{AffinePoint, CompressedPoint, ProjectivePoint, Scalar};
 use rand::rngs::OsRng;
-use serde::{Deserialize, Serialize};
 use serde_json;
 use sha2::digest::generic_array::{self, GenericArray};
 use sha2::{Digest, Sha256};
 use std::fmt;
+
 pub const G: ProjectivePoint = ProjectivePoint::GENERATOR;
 
 pub fn generate_random() -> Scalar {
@@ -25,16 +25,15 @@ pub struct DLogProof {
     pub s: Scalar,
 }
 
-// Associated constants and methods
 impl DLogProof {
     fn new(t: ProjectivePoint, s: Scalar) -> Self {
         DLogProof { t, s }
     }
 
-    // Convert the struct to a dictionary and then to a JSON string
     pub fn to_str(&self) -> String {
         serde_json::to_string(&self.to_dict()).unwrap()
     }
+
     pub fn to_dict(&self) -> serde_json::Map<String, serde_json::Value> {
         let mut map = serde_json::Map::new();
         map.insert(
@@ -48,7 +47,6 @@ impl DLogProof {
         map
     }
 
-    // Create a struct from a dictionary
     pub fn from_dict(data: &serde_json::Map<String, serde_json::Value>) -> Self {
         let t_hex = data.get("t").unwrap().as_str().unwrap();
         let s_hex = data.get("s").unwrap().as_str().unwrap();
@@ -59,32 +57,21 @@ impl DLogProof {
         let cmprsd: CompressedPoint = *CompressedPoint::from_slice(t_bytes.as_slice());
         let t: ProjectivePoint = ProjectivePoint::from_bytes(&cmprsd).unwrap();
 
-        // let t: ProjectivePoint = ProjectivePoint::from_encoded_point(&t_bytes).unwrap();
-
-        // let t =
-        //     ProjectivePoint::to_encoded_point(&k256::EncodedPoint::from_bytes(&t_bytes).unwrap());
-
         let tmp: GenericArray<u8, U32> = *GenericArray::from_slice(s_bytes.as_slice());
         let s: Scalar = Scalar::from_repr(tmp).unwrap();
-
-        //let s: Scalar = Scalar::from_be_bytes_reduced(tmp);
-        //let s = Scalar::from_be_bytes_reduced(&s_bytes.try_into().unwrap());
 
         DLogProof { t, s }
     }
 
-    // Create a struct from a JSON string
     pub fn from_str(json: &str) -> Self {
         let data: serde_json::Map<String, serde_json::Value> = serde_json::from_str(json).unwrap();
         Self::from_dict(&data)
     }
 
-    // Convert ProjectivePoint to hex string
     pub fn point_to_hex(&self, point: &ProjectivePoint) -> String {
         hex::encode(point.to_encoded_point(true).as_bytes())
     }
 
-    // Convert Scalar to hex string
     pub fn scalar_to_hex(&self, scalar: &Scalar) -> String {
         hex::encode(scalar.to_bytes())
     }
@@ -99,9 +86,7 @@ impl DLogProof {
             h.update(affine_point.to_encoded_point(true).as_bytes())
         }
         let digest = h.finalize();
-        println!("Hash: {:x}", digest);
         let scalar = Scalar::from_repr(digest);
-        println!("{:?}", scalar);
         scalar.unwrap()
     }
 
@@ -134,23 +119,21 @@ impl DLogProof {
     }
 }
 
-// Implement equality comparison
 impl PartialEq for DLogProof {
     fn eq(&self, other: &Self) -> bool {
         self.t == other.t && self.s == other.s
     }
 }
 
-// Implement the `Eq` trait as well
 impl Eq for DLogProof {}
 
-// Implement Display for pretty printing
 impl fmt::Display for DLogProof {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "DLogProof {{ t: {:?}, s: {:?} }}", self.t, self.s)
     }
 }
 
+// this is needed to implement the trait below
 trait ToBytes {
     fn to_bytes(&self) -> Vec<u8>;
 }
