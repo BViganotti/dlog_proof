@@ -48,10 +48,10 @@ impl DLogProof {
     }
 
     pub fn from_dict(data: &serde_json::Map<String, serde_json::Value>) -> Self {
-        let t_hex = data.get("t").unwrap().as_str().unwrap();
-        let s_hex = data.get("s").unwrap().as_str().unwrap();
+        let t_hex: &str = data.get("t").unwrap().as_str().unwrap();
+        let s_hex: &str = data.get("s").unwrap().as_str().unwrap();
 
-        let t_bytes = hex::decode(t_hex).unwrap();
+        let t_bytes: Vec<u8> = hex::decode(t_hex).unwrap();
         let s_bytes: Vec<u8> = hex::decode(s_hex).unwrap();
 
         let cmprsd: CompressedPoint = *CompressedPoint::from_slice(t_bytes.as_slice());
@@ -68,6 +68,7 @@ impl DLogProof {
         Self::from_dict(&data)
     }
 
+    // Scalars, ProjectivePoints and AffinePoints are hell to print, hex seems like the only reasonable way to do it
     pub fn point_to_hex(&self, point: &ProjectivePoint) -> String {
         hex::encode(point.to_encoded_point(true).as_bytes())
     }
@@ -82,7 +83,7 @@ impl DLogProof {
         h.update(pid.to_be_bytes());
         for p in points {
             let affine_point: AffinePoint = p.into();
-            // usually AffinePoint are compressed according to the docs
+            // usually AffinePoint are compressed according to the docs, leaving it as true
             h.update(affine_point.to_encoded_point(true).as_bytes())
         }
         let digest = h.finalize();
@@ -97,13 +98,13 @@ impl DLogProof {
         y: ProjectivePoint,
         base_point: ProjectivePoint,
     ) -> DLogProof {
-        let r = generate_random();
-        let t = base_point * r;
-        let c = DLogProof::hash_points(sid, pid, vec![base_point, y, t]);
+        let r: Scalar = generate_random();
+        let t: ProjectivePoint = base_point * r;
+        let c: Scalar = DLogProof::hash_points(sid, pid, vec![base_point, y, t]);
         /*
         no need to do the mod operation like in python because the Scalar type and elliptic curve operations are designed to work within the finite field defined by the curve’s order
         */
-        let s = r + c * x;
+        let s: Scalar = r + c * x;
         DLogProof::new(t, s)
     }
 
@@ -114,23 +115,10 @@ impl DLogProof {
         y: ProjectivePoint,
         base_point: ProjectivePoint,
     ) -> bool {
-        let c = Self::hash_points(sid, pid, vec![base_point, y, self.t]);
-        let lhs = base_point * self.s;
-        let rhs = self.t + (y * c);
+        let c: Scalar = Self::hash_points(sid, pid, vec![base_point, y, self.t]);
+        let lhs: ProjectivePoint = base_point * self.s;
+        let rhs: ProjectivePoint = self.t + (y * c);
         lhs == rhs
-    }
-
-    pub fn print_t_coordinates(&self) {
-        // Convert ProjectivePoint to AffinePoint
-        let affine_point: AffinePoint = self.t.to_affine();
-
-        // Get the x and y coordinates
-        let x = affine_point.x();
-        //let y = affine_point.y();
-
-        // Print the coordinates
-        println!("x: {:?}", x);
-        //println!("y: {:?}", y);
     }
 }
 
