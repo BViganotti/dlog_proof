@@ -16,6 +16,8 @@ fn main() {
         start_proof.elapsed().as_millis()
     );
 
+    println!("{}", dlog_proof.point_to_hex(&dlog_proof.t));
+
     // println!("");
     // println!("{} {}", dlog_proof.t);
     /*print(dlog_proof.t.x(), dlog_proof.t.y())
