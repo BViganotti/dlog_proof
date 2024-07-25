@@ -5,7 +5,7 @@ extern crate sha2;
 use generic_array::typenum::U32;
 use k256::elliptic_curve::group::GroupEncoding;
 use k256::elliptic_curve::sec1::ToEncodedPoint;
-use k256::elliptic_curve::PrimeField;
+use k256::elliptic_curve::{AffineXCoordinate, PrimeField};
 use k256::{AffinePoint, CompressedPoint, ProjectivePoint, Scalar};
 use rand::rngs::OsRng;
 use serde_json;
@@ -100,7 +100,9 @@ impl DLogProof {
         let r = generate_random();
         let t = base_point * r;
         let c = DLogProof::hash_points(sid, pid, vec![base_point, y, t]);
-
+        /*
+        no need to do the mod operation like in python because the Scalar type and elliptic curve operations are designed to work within the finite field defined by the curve’s order
+        */
         let s = r + c * x;
         DLogProof::new(t, s)
     }
@@ -116,6 +118,19 @@ impl DLogProof {
         let lhs = base_point * self.s;
         let rhs = self.t + (y * c);
         lhs == rhs
+    }
+
+    pub fn print_t_coordinates(&self) {
+        // Convert ProjectivePoint to AffinePoint
+        let affine_point: AffinePoint = self.t.to_affine();
+
+        // Get the x and y coordinates
+        let x = affine_point.x();
+        //let y = affine_point.y();
+
+        // Print the coordinates
+        println!("x: {:?}", x);
+        //println!("y: {:?}", y);
     }
 }
 
