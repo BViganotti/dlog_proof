@@ -112,7 +112,7 @@ impl DLogProof {
         Self::from_dict(&data)
     }
 
-    // Scalars, ProjectivePoints and AffinePoints are hell to print, hex seems like the only reasonable way to do it
+    // Scalars, ProjectivePoints and AffinePoints do provide some information when printed but not very usable info, hex seems like the only reasonable way to do it
     pub fn point_to_hex(&self, point: &ProjectivePoint) -> String {
         hex::encode(point.to_encoded_point(true).as_bytes())
     }
@@ -136,7 +136,7 @@ impl fmt::Display for DLogProof {
     }
 }
 
-// this is needed to implement the trait below
+// this ToBytes is needed to implement the trait below
 trait ToBytes {
     fn to_bytes(&self) -> Vec<u8>;
 }

@@ -18,7 +18,7 @@ fn main() {
     );
 
     println!("");
-    // unfortunately the x, y coordinates are private fields both in ProjectivePoint and AffinePoint
+    // unfortunately the x, y coordinates are private fields both in ProjectivePoint and AffinePoint structs
     // so i have to print it that way, this is a difference between this Rust implementation and the original script.
     println!("t: {}", dlog_proof.point_to_hex(&dlog_proof.t));
     println!("s: {}", dlog_proof.scalar_to_hex(&dlog_proof.s));
