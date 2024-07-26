@@ -5,7 +5,7 @@ extern crate sha2;
 use generic_array::typenum::U32;
 use k256::elliptic_curve::group::GroupEncoding;
 use k256::elliptic_curve::sec1::ToEncodedPoint;
-use k256::elliptic_curve::{AffineXCoordinate, PrimeField};
+use k256::elliptic_curve::PrimeField;
 use k256::{AffinePoint, CompressedPoint, ProjectivePoint, Scalar};
 use rand::rngs::OsRng;
 use serde_json;
@@ -28,6 +28,50 @@ pub struct DLogProof {
 impl DLogProof {
     fn new(t: ProjectivePoint, s: Scalar) -> Self {
         DLogProof { t, s }
+    }
+
+    pub fn hash_points(sid: String, pid: i32, points: Vec<ProjectivePoint>) -> Scalar {
+        let mut h = Sha256::new();
+        h.update(sid.as_bytes());
+        h.update(pid.to_be_bytes());
+        for p in points {
+            let affine_point: AffinePoint = p.into();
+            // usually AffinePoint are compressed according to the docs, leaving it as true
+            h.update(affine_point.to_encoded_point(true).as_bytes())
+        }
+        let digest = h.finalize();
+        let scalar = Scalar::from_repr(digest);
+        scalar.unwrap()
+    }
+
+    pub fn prove(
+        sid: String,
+        pid: i32,
+        x: Scalar,
+        y: ProjectivePoint,
+        base_point: ProjectivePoint,
+    ) -> DLogProof {
+        let r: Scalar = generate_random();
+        let t: ProjectivePoint = base_point * r;
+        let c: Scalar = DLogProof::hash_points(sid, pid, vec![base_point, y, t]);
+        /*
+        no need to do the mod operation like in python because the Scalar type and elliptic curve operations are designed to work within the finite field defined by the curve’s order
+        */
+        let s: Scalar = r + c * x;
+        DLogProof::new(t, s)
+    }
+
+    pub fn verify(
+        &self,
+        sid: String,
+        pid: i32,
+        y: ProjectivePoint,
+        base_point: ProjectivePoint,
+    ) -> bool {
+        let c: Scalar = Self::hash_points(sid, pid, vec![base_point, y, self.t]);
+        let lhs: ProjectivePoint = base_point * self.s;
+        let rhs: ProjectivePoint = self.t + (y * c);
+        lhs == rhs
     }
 
     pub fn to_str(&self) -> String {
@@ -75,50 +119,6 @@ impl DLogProof {
 
     pub fn scalar_to_hex(&self, scalar: &Scalar) -> String {
         hex::encode(scalar.to_bytes())
-    }
-
-    pub fn hash_points(sid: String, pid: i32, points: Vec<ProjectivePoint>) -> Scalar {
-        let mut h = Sha256::new();
-        h.update(sid.as_bytes());
-        h.update(pid.to_be_bytes());
-        for p in points {
-            let affine_point: AffinePoint = p.into();
-            // usually AffinePoint are compressed according to the docs, leaving it as true
-            h.update(affine_point.to_encoded_point(true).as_bytes())
-        }
-        let digest = h.finalize();
-        let scalar = Scalar::from_repr(digest);
-        scalar.unwrap()
-    }
-
-    pub fn prove(
-        sid: String,
-        pid: i32,
-        x: Scalar,
-        y: ProjectivePoint,
-        base_point: ProjectivePoint,
-    ) -> DLogProof {
-        let r: Scalar = generate_random();
-        let t: ProjectivePoint = base_point * r;
-        let c: Scalar = DLogProof::hash_points(sid, pid, vec![base_point, y, t]);
-        /*
-        no need to do the mod operation like in python because the Scalar type and elliptic curve operations are designed to work within the finite field defined by the curve’s order
-        */
-        let s: Scalar = r + c * x;
-        DLogProof::new(t, s)
-    }
-
-    pub fn verify(
-        &self,
-        sid: String,
-        pid: i32,
-        y: ProjectivePoint,
-        base_point: ProjectivePoint,
-    ) -> bool {
-        let c: Scalar = Self::hash_points(sid, pid, vec![base_point, y, self.t]);
-        let lhs: ProjectivePoint = base_point * self.s;
-        let rhs: ProjectivePoint = self.t + (y * c);
-        lhs == rhs
     }
 }
 
