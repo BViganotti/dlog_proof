@@ -1,17 +1,29 @@
 pub mod dlog_proof;
+use clap::Parser;
 use dlog_proof::*;
 use k256::{ProjectivePoint, Scalar};
 use std::time::Instant;
 
+#[derive(Parser)]
+#[command(version, about, long_about = None)]
+struct Args {
+    #[arg(short, long, default_value = "sid")]
+    sid: String,
+    #[arg(short, long, default_value_t = 1)]
+    pid: i32,
+}
+
 fn main() {
+    let args = Args::parse();
+
     let x: Scalar = generate_random();
     let g: ProjectivePoint = G;
     let y: ProjectivePoint = g * x;
-    let sid: String = "sid".to_string();
-    let pid: i32 = 1;
+
+    println!("sid: {}, pid: {}", args.sid, args.pid);
 
     let start_proof: Instant = Instant::now();
-    let dlog_proof: DLogProof = DLogProof::prove(sid.clone(), pid, x, y, g);
+    let dlog_proof: DLogProof = DLogProof::prove(args.sid.clone(), args.pid, x, y, g);
     println!(
         "Proof computation time: {}ms",
         start_proof.elapsed().as_millis()
@@ -25,7 +37,7 @@ fn main() {
     println!("");
 
     let start_verify = Instant::now();
-    let result = dlog_proof.verify(sid, pid, y, g);
+    let result = dlog_proof.verify(args.sid, args.pid, y, g);
     println!(
         "Verify computation time: {}ms",
         start_verify.elapsed().as_millis()
