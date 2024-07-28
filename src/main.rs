@@ -47,4 +47,11 @@ fn main() {
     } else {
         println!("DLOG proof is not correct");
     }
+    println!("");
+    println!("Below is a simple serialization and deserialization test:");
+    let to_serialize = dlog_proof.serialize();
+    let to_deserialize = dlog_proof.deserialize(&to_serialize);
+    println!("serialized:\n{:?}", to_serialize);
+    println!("");
+    println!("deserialized:\n{:?}", to_deserialize);
 }

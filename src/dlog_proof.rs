@@ -11,7 +11,6 @@ use rand::rngs::OsRng;
 use serde_json;
 use sha2::digest::generic_array::{self, GenericArray};
 use sha2::{Digest, Sha256};
-use std::fmt;
 
 pub const G: ProjectivePoint = ProjectivePoint::GENERATOR;
 
@@ -119,31 +118,22 @@ impl DLogProof {
     pub fn scalar_to_hex(&self, scalar: &Scalar) -> String {
         hex::encode(scalar.to_bytes())
     }
+
+    pub fn serialize(&self) -> serde_json::Map<String, serde_json::Value> {
+        self.to_dict()
+    }
+
+    pub fn deserialize(&self, input: &serde_json::Map<String, serde_json::Value>) -> Self {
+        Self::from_dict(input)
+    }
 }
 
 impl PartialEq for DLogProof {
     fn eq(&self, other: &Self) -> bool {
         self.t == other.t && self.s == other.s
     }
-}
 
-impl Eq for DLogProof {}
-
-impl fmt::Display for DLogProof {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "DLogProof {{ t: {:?}, s: {:?} }}", self.t, self.s)
-    }
-}
-
-// this ToBytes trait is needed for the impl below but generate a unused code warning
-#[allow(dead_code)]
-trait ToBytes {
-    fn to_bytes(&self) -> Vec<u8>;
-}
-
-impl ToBytes for ProjectivePoint {
-    fn to_bytes(&self) -> Vec<u8> {
-        let affine_point: AffinePoint = (*self).into();
-        affine_point.to_encoded_point(true).as_bytes().to_vec()
+    fn ne(&self, other: &Self) -> bool {
+        !self.eq(other)
     }
 }
