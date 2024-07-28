@@ -1,4 +1,4 @@
-# Discrete Logarithmic proof
+# ZK DLOG proof
 
 The code is the adaptation of a script to perform the core concepts of creating a zero knowledge discrete logarithm proof using the Schnorr protocol with Fiat-Shamir transformation.
 ## Usage
