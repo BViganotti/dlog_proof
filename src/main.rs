@@ -5,7 +5,6 @@ use k256::{ProjectivePoint, Scalar};
 use std::time::Instant;
 
 #[derive(Parser)]
-#[command(version, about, long_about = None)]
 struct Args {
     #[arg(short, long, default_value = "sid")]
     sid: String,

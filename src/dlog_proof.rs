@@ -54,9 +54,8 @@ impl DLogProof {
         let r: Scalar = generate_random();
         let t: ProjectivePoint = base_point * r;
         let c: Scalar = DLogProof::hash_points(sid, pid, vec![base_point, y, t]);
-        /*
-        no need to do the mod operation like in python because the Scalar type and elliptic curve operations are designed to work within the finite field defined by the curve’s order
-        */
+        // no need to do the mod operation like in python because the Scalar type and elliptic curve operations
+        // are designed to work within the finite field defined by the curve’s order
         let s: Scalar = r + c * x;
         DLogProof::new(t, s)
     }
@@ -98,8 +97,8 @@ impl DLogProof {
         let t_bytes: Vec<u8> = hex::decode(t_hex).unwrap();
         let s_bytes: Vec<u8> = hex::decode(s_hex).unwrap();
 
-        let cmprsd: CompressedPoint = *CompressedPoint::from_slice(t_bytes.as_slice());
-        let t: ProjectivePoint = ProjectivePoint::from_bytes(&cmprsd).unwrap();
+        let compressed: CompressedPoint = *CompressedPoint::from_slice(t_bytes.as_slice());
+        let t: ProjectivePoint = ProjectivePoint::from_bytes(&compressed).unwrap();
 
         let tmp: GenericArray<u8, U32> = *GenericArray::from_slice(s_bytes.as_slice());
         let s: Scalar = Scalar::from_repr(tmp).unwrap();
@@ -136,7 +135,8 @@ impl fmt::Display for DLogProof {
     }
 }
 
-// this ToBytes is needed to implement the trait below
+// this ToBytes trait is needed for the impl below but generate a unused code warning
+#[allow(dead_code)]
 trait ToBytes {
     fn to_bytes(&self) -> Vec<u8>;
 }
